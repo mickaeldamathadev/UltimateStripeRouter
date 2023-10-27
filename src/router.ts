@@ -1,8 +1,13 @@
 import { Router } from 'express'
 import Card, { CardCallback } from './controllers/Card'
 import Charge, { ChargeCallback } from './controllers/Charge'
-import CheckouSession, { CheckoutCallback } from './controllers/CheckoutSession'
-import Customer, { CustomerCallback } from './controllers/Customer'
+import CheckoutSession, {
+  CheckoutCallback,
+} from './controllers/CheckoutSession'
+import Customer, {
+  CustomerCallback,
+  CustomerListCallback,
+} from './controllers/Customer'
 import Price, { PriceCallback } from './controllers/Price'
 import Product, { ProductCallback } from './controllers/Product'
 
@@ -10,6 +15,7 @@ interface RouterProps {
   createCallback?: CustomerCallback
   retrieveCallback?: CustomerCallback
   updateCallback?: CustomerCallback
+  listCallback?: CustomerListCallback
   deleteCallback?: CustomerCallback
   createCardCallback?: CardCallback
   retrieveCardCallback?: CardCallback
@@ -27,6 +33,7 @@ interface RouterProps {
   deleteProductCallback?: ProductCallback
   createCheckoutSessionCallback?: CheckoutCallback
   retrieveCheckoutSessionCallback?: CheckoutCallback
+  expiredCheckoutSessionCallback?: CheckoutCallback
 }
 
 export default function router({
@@ -34,6 +41,7 @@ export default function router({
   deleteCallback,
   retrieveCallback,
   updateCallback,
+  listCallback,
   createCardCallback,
   retrieveCardCallback,
   updateCardCallback,
@@ -43,25 +51,17 @@ export default function router({
   createPriceCallback,
   retrievePriceCallback,
   updatePriceCallback,
-  deletePriceCallback,
   createProductCallback,
   retrieveProductCallback,
   updateProductCallback,
   deleteProductCallback,
   createCheckoutSessionCallback,
   retrieveCheckoutSessionCallback,
+  expiredCheckoutSessionCallback,
 }: RouterProps) {
   const router = Router()
-    .post(
-      '/checkout-session',
-      CheckouSession.create(createCheckoutSessionCallback),
-    )
-    .post(
-      '/checkout-session/:id',
-      CheckouSession.retrieve(retrieveCheckoutSessionCallback),
-    )
-
     .post('/customers', Customer.create(createCallback))
+    .get('/customers', Customer.getAll(listCallback))
     .get('/customers/:id', Customer.retrieve(retrieveCallback))
     .put('/customers/:id', Customer.update(updateCallback))
     .delete('/customers/:id', Customer.delete(deleteCallback))
@@ -77,12 +77,23 @@ export default function router({
     .post('/prices', Price.create(createPriceCallback))
     .get('/prices/:id', Price.retrieve(retrievePriceCallback))
     .put('/prices/:id', Price.update(updatePriceCallback))
-    .delete('/prices/:id', Price.delete(deletePriceCallback))
 
     .post('/products', Product.create(createProductCallback))
     .get('/products/:id', Product.retrieve(retrieveProductCallback))
     .put('/products/:id', Product.update(updateProductCallback))
     .delete('/products/:id', Product.delete(deleteProductCallback))
 
+    .post(
+      '/checkout-session',
+      CheckoutSession.create(createCheckoutSessionCallback),
+    )
+    .get(
+      '/checkout-session/:id',
+      CheckoutSession.retrieve(retrieveCheckoutSessionCallback),
+    )
+    .delete(
+      '/checkout-session/:id',
+      CheckoutSession.expired(expiredCheckoutSessionCallback),
+    )
   return router
 }
